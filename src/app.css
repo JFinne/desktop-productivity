@@ -1,0 +1,113 @@
+/*
+ * Base layer. Colour tokens are injected at runtime by `themes/apply.ts`;
+ * everything here is layout, typography and shape, which themes don't change.
+ */
+
+:root {
+	--titlebar-height: 34px;
+	--radius: 6px;
+	--radius-lg: 10px;
+	--font-scale: 1;
+	--font-ui:
+		'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', system-ui,
+		sans-serif;
+	--font-mono: 'Cascadia Mono', 'JetBrains Mono', Consolas, 'SF Mono', ui-monospace, monospace;
+
+	/* Fallbacks so the window is never unstyled during first paint. */
+	--bg: #0b0e14;
+	--bg-sunken: #080a10;
+	--bg-raised: #0f131a;
+	--bg-hover: #141922;
+	--bg-active: #1a202b;
+	--border: #151a23;
+	--border-strong: #232a36;
+	--text: #bfbdb6;
+	--text-muted: #7a8290;
+	--text-faint: #4d5566;
+	--accent: #e6b450;
+	--accent-text: #0b0e14;
+	--accent-soft: rgba(230, 180, 80, 0.14);
+	--success: #aad94c;
+	--warning: #ffb454;
+	--danger: #f07178;
+	--info: #59c2ff;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+}
+
+body {
+	background: var(--bg-sunken);
+	color: var(--text);
+	font-family: var(--font-ui);
+	font-size: calc(15px * var(--font-scale));
+	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+	margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+a {
+	color: var(--accent);
+}
+
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+/* Thin, theme-aware scrollbars — no chunky native bars breaking the bezel-less look. */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+	background: var(--border-strong);
+	border: 3px solid transparent;
+	border-radius: 999px;
+	background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background: var(--text-faint);
+	background-clip: content-box;
+}
+
+*::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-track {
+	background: transparent;
+}
