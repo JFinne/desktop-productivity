@@ -1,9 +1,10 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
-	import { CATEGORY_COLORS, colorVar, taskStore, type CategoryColor } from './store.svelte';
+	import ColorPicker from './ColorPicker.svelte';
+	import { DEFAULT_CATEGORY_COLOR, taskStore, type CategoryColor } from './store.svelte';
 
 	let name = $state('');
-	let color = $state<CategoryColor>('accent');
+	let color = $state<CategoryColor>(DEFAULT_CATEGORY_COLOR);
 
 	function add() {
 		if (taskStore.addCategory(name, color)) name = '';
@@ -14,26 +15,17 @@
 	<div class="list">
 		{#each taskStore.categories as category (category.id)}
 			<div class="row">
-				<span class="swatch" style:background={colorVar(category.color)}></span>
+				<ColorPicker
+					value={category.color}
+					label="Colour for {category.name}"
+					onchange={(picked) => taskStore.updateCategory(category.id, { color: picked })}
+				/>
 				<input
 					class="name"
 					value={category.name}
 					oninput={(e) => taskStore.updateCategory(category.id, { name: e.currentTarget.value })}
 					aria-label="Category name"
 				/>
-				<select
-					class="color"
-					value={category.color}
-					onchange={(e) =>
-						taskStore.updateCategory(category.id, {
-							color: e.currentTarget.value as CategoryColor
-						})}
-					aria-label="Category colour"
-				>
-					{#each CATEGORY_COLORS as option (option)}
-						<option value={option}>{option}</option>
-					{/each}
-				</select>
 				<button
 					type="button"
 					class="remove"
@@ -54,13 +46,8 @@
 			add();
 		}}
 	>
-		<span class="swatch" style:background={colorVar(color)}></span>
+		<ColorPicker value={color} label="Colour for the new category" onchange={(p) => (color = p)} />
 		<input class="name" bind:value={name} placeholder="New category" />
-		<select class="color" bind:value={color} aria-label="Colour">
-			{#each CATEGORY_COLORS as option (option)}
-				<option value={option}>{option}</option>
-			{/each}
-		</select>
 		<button class="addBtn" type="submit" disabled={!name.trim()}>
 			<Icon name="plus" size={13} />
 		</button>
@@ -92,13 +79,6 @@
 		border-top: 1px solid var(--border);
 	}
 
-	.swatch {
-		flex: none;
-		width: 9px;
-		height: 9px;
-		border-radius: 50%;
-	}
-
 	.name {
 		flex: 1;
 		min-width: 0;
@@ -115,16 +95,6 @@
 		border-color: var(--border-strong);
 		background: var(--bg);
 		outline: none;
-	}
-
-	.color {
-		flex: none;
-		height: 26px;
-		padding: 0 0.25rem;
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius);
-		background: var(--bg);
-		font-size: 0.75rem;
 	}
 
 	.remove,

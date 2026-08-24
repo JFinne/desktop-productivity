@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { anchored } from '$lib/anchored';
 	import Icon from '$lib/components/Icon.svelte';
 	import { addDays, formatDayLabel, todayISO, type ISODate } from '$lib/date';
 
@@ -9,6 +10,7 @@
 
 	let open = $state(false);
 	let root = $state<HTMLElement | null>(null);
+	let trigger = $state<HTMLElement | null>(null);
 
 	const today = $derived(todayISO());
 	const label = $derived(value === null ? 'Someday' : formatDayLabel(value, today));
@@ -39,6 +41,7 @@
 
 <div class="date-menu" bind:this={root}>
 	<button
+			bind:this={trigger}
 			type="button"
 			class="trigger"
 			class:someday={value === null}
@@ -49,7 +52,7 @@
 	</button>
 
 	{#if open}
-		<div class="menu">
+		<div class="menu" use:anchored={{ anchor: trigger, align: 'end' }}>
 			{#each presets as preset (preset.label)}
 				<button type="button" class="option" onclick={() => choose(preset.date)}>
 					<span>{preset.label}</span>
@@ -100,9 +103,7 @@
 	}
 
 	.menu {
-		position: absolute;
-		top: calc(100% + 4px);
-		right: 0;
+		/* Positioned by the `anchored` action, which sets position/left/top. */
 		z-index: 20;
 		display: flex;
 		flex-direction: column;

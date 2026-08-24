@@ -13,6 +13,11 @@
 		sans-serif;
 	--font-mono: 'Cascadia Mono', 'JetBrains Mono', Consolas, 'SF Mono', ui-monospace, monospace;
 
+	/* Category colours are chosen freely, so a pale one (Banana on a light theme
+	   is under 2:1) would otherwise vanish. A hairline ring defines the shape
+	   without altering the colour the user picked. */
+	--swatch-ring: inset 0 0 0 1px rgb(0 0 0 / 0.22);
+
 	/* Fallbacks so the window is never unstyled during first paint.
 	   Keep these in step with the Classic Dark tokens in themes/themes.ts. */
 	--bg: #1f2430;
@@ -32,6 +37,10 @@
 	--warning: #ffd173;
 	--danger: #f28779;
 	--info: #73d0ff;
+}
+
+:root[data-mode='dark'] {
+	--swatch-ring: inset 0 0 0 1px rgb(255 255 255 / 0.16);
 }
 
 *,

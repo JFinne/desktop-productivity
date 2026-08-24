@@ -73,9 +73,29 @@ same way.
 
 Tasks carry a category and a scheduled day (`YYYY-MM-DD`, or null for the Someday
 backlog), and the page groups them into Overdue / Today / each upcoming day / Someday /
-Completed. Categories are user-defined and store a *theme token name* rather than a
-literal colour, so a category keeps its meaning when the theme changes; deleting one
-leaves its tasks alone and simply uncategorises them.
+Completed. Deleting a category leaves its tasks alone and simply uncategorises them.
+
+### Category colours
+
+A category's `color` is either a literal hex — what the picker writes — or one of the
+theme token names (`accent`, `info`, `success`, `warning`, `danger`, `muted`) that older
+category files use. Tokens follow the theme; a hex stays put, which is the point of
+choosing one. Both resolve through `colorVar` / `resolveColor` in the tasks store, so
+nothing needed migrating when the picker arrived.
+
+The picker offers twelve preset colours plus a Custom row backed by a native
+`<input type="color">`, which opens the OS colour dialog — a spectrum and an eyedropper
+for free, and no dependency.
+
+Two things make an arbitrary colour safe on ten different backgrounds:
+
+- **As text** (the category name in a task row) it goes through `colorText`, which mixes
+  the colour toward white or black until it clears 4.5:1 on the current theme, preserving
+  hue. Banana renders `#E3B341` on Abyss and `#886B27` on Sunset.
+- **As a dot** it is drawn at full strength with a hairline ring (`--swatch-ring` in
+  `app.css`, which flips with `data-mode`). Pale colours would otherwise disappear —
+  Banana is under 2:1 against Desert's sand — and tinting the dot would misrepresent the
+  colour the user picked.
 
 With "carry unfinished tasks forward" on, anything still open from a past day moves to
 today at launch, which is how a list you didn't finish feeds the next focus session.

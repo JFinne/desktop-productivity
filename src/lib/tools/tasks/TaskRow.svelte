@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import type { ISODate } from '$lib/date';
-	import { colorVar, taskStore, type Task } from './store.svelte';
+	import { colorText, taskStore, type Task } from './store.svelte';
 	import DateMenu from './DateMenu.svelte';
 
 	let { task }: { task: Task } = $props();
@@ -44,7 +44,7 @@
 
 	<select
 		class="category"
-		style:color={category ? colorVar(category.color) : 'var(--text-faint)'}
+		style:color={category ? colorText(category.color) : 'var(--text-faint)'}
 		value={task.categoryId ?? ''}
 		onchange={(e) => taskStore.update(task.id, { categoryId: e.currentTarget.value || null })}
 		aria-label="Category"

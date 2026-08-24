@@ -1,16 +1,68 @@
+import { isHex, readableOn } from '$lib/color';
 import { todayISO, type ISODate } from '$lib/date';
 import { Persisted } from '$lib/persisted.svelte';
 import { settings } from '$lib/settings/settings.svelte';
+import { getTheme, type ThemeTokens } from '$lib/themes/themes';
 
 /**
- * Category colours are theme token names rather than literal colours, so a
- * category keeps its meaning when the theme changes.
+ * A category colour is either a literal hex (what the picker writes) or one of
+ * the theme token names below, which older category files still use. Tokens
+ * follow the theme; a hex stays put, which is the whole point of choosing one.
  */
-export const CATEGORY_COLORS = ['accent', 'info', 'success', 'warning', 'danger', 'muted'] as const;
-export type CategoryColor = (typeof CATEGORY_COLORS)[number];
+export type CategoryColor = string;
 
+/** Token names that map straight onto a theme token of the same name. */
+const DIRECT_TOKENS = ['accent', 'info', 'success', 'warning', 'danger'] as const;
+type DirectToken = (typeof DIRECT_TOKENS)[number];
+
+const isDirectToken = (color: string): color is DirectToken =>
+	(DIRECT_TOKENS as readonly string[]).includes(color);
+
+/** The Google-Suite-style palette offered in the picker. */
+export const CATEGORY_PRESETS: { name: string; hex: string }[] = [
+	{ name: 'Tomato', hex: '#E5544B' },
+	{ name: 'Tangerine', hex: '#E8913A' },
+	{ name: 'Banana', hex: '#E3B341' },
+	{ name: 'Sage', hex: '#8FBF6B' },
+	{ name: 'Basil', hex: '#4CAF7D' },
+	{ name: 'Teal', hex: '#3FB4B0' },
+	{ name: 'Peacock', hex: '#3E9FD6' },
+	{ name: 'Blueberry', hex: '#5B7FE0' },
+	{ name: 'Lavender', hex: '#8E8FE0' },
+	{ name: 'Grape', hex: '#A96BD1' },
+	{ name: 'Rose', hex: '#DE6BA5' },
+	{ name: 'Graphite', hex: '#8C97A3' }
+];
+
+export const DEFAULT_CATEGORY_COLOR = CATEGORY_PRESETS[7].hex;
+
+function activeTokens(): ThemeTokens {
+	return getTheme(settings.value.appearance.themeId).tokens;
+}
+
+/** A concrete hex for the colour, resolving theme tokens against the live theme. */
+export function resolveColor(color: CategoryColor): string {
+	if (isHex(color)) return color;
+	const tokens = activeTokens();
+	// 'muted' is the one token whose name differs from its key.
+	if (color === 'muted') return tokens.textMuted;
+	return isDirectToken(color) ? tokens[color] : tokens.accent;
+}
+
+/** For dots and swatches, where the colour is shown as a fill. */
 export function colorVar(color: CategoryColor): string {
-	return color === 'muted' ? 'var(--text-muted)' : `var(--${color})`;
+	if (isHex(color)) return color;
+	if (color === 'muted') return 'var(--text-muted)';
+	return isDirectToken(color) ? `var(--${color})` : 'var(--accent)';
+}
+
+/**
+ * For places that render the colour as *text*. A pale banana on Classic Light
+ * or a deep grape on Abyss would be unreadable, so this nudges the colour
+ * toward the background's opposite until it clears AA, keeping the hue.
+ */
+export function colorText(color: CategoryColor): string {
+	return readableOn(resolveColor(color), activeTokens().bg);
 }
 
 export interface Category {

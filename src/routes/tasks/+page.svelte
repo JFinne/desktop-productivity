@@ -271,6 +271,7 @@
 		width: 7px;
 		height: 7px;
 		border-radius: 50%;
+		box-shadow: var(--swatch-ring);
 	}
 
 	.lists {
