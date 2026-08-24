@@ -10,15 +10,22 @@
 	import { registry } from '$lib/registry.svelte';
 	import { settings } from '$lib/settings/settings.svelte';
 	import { applyTheme } from '$lib/themes/apply';
-	import { circadian } from '$lib/themes/circadian.svelte';
 	import { getTheme } from '$lib/themes/themes';
 
 	let { children } = $props();
 
 	$effect(() => {
-		const { themeId, adaptive, fontScale } = settings.value.appearance;
-		// `circadian.theme` reads a ticking clock, so this effect re-runs on its own.
-		applyTheme(adaptive ? circadian.theme : getTheme(themeId), fontScale);
+		const { themeId, fontScale } = settings.value.appearance;
+		const theme = getTheme(themeId);
+
+		// A settings file written before a theme was renamed or removed still
+		// names it. `getTheme` already falls back, but writing the resolved id
+		// back keeps the picker's selection honest instead of showing nothing.
+		if (settings.loaded && theme.id !== themeId) {
+			settings.value.appearance.themeId = theme.id;
+		}
+
+		applyTheme(theme, fontScale);
 	});
 
 	const activeTool = $derived(registry.tools.find((t) => page.url.pathname.startsWith(t.path)));

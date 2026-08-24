@@ -103,34 +103,34 @@ drag-and-drop inside the webview — chips would select as text instead of lifti
 never accepts dropped files (sound import goes through a dialog), so turning it off costs
 nothing. Don't re-enable it without replacing the calendar's drag interaction.
 
-## The daylight cycle
+## Themes
 
-`Settings → Daylight cycle` replaces the fixed theme with a palette that follows the sun
-where you are. It is computed on the machine — `themes/sun.ts` implements the standard
-low-precision solar position algorithm, so nothing is looked up online. Longitude is
-guessed from the machine's UTC offset; latitude has to be entered, and the sunrise time
-shown in Settings is the quickest way to confirm it is right.
+Ten themes, five dark and five light, in `themes/themes.ts`. Each one is a flat token
+map; adding another means adding an entry to the `themes` array and nothing else — the
+picker, the settings page and every component read the same tokens.
 
-Rather than switching themes at fixed clock times, `themes/circadian.svelte.ts`
-interpolates continuously against the sun's **elevation**. Two things fall out of that:
-the shift is slow enough that you never catch it happening, and it tracks the seasons —
-a January afternoon reaches a lower, warmer part of the ramp than a June one. Below the
-horizon the ramp splits on whether the sun is rising or setting, because the same
-altitude should read as rose-tinted dawn or violet dusk depending on which way it is
-going. Midday is Ayu Dark exactly, so the app's resting look is home base.
+Unlike a scheme that drops a coloured accent onto neutral grey, each theme tints its
+whole surface: Forest genuinely sits on deep green, Abyss on navy, Desert on warm sand.
+The two Classic themes stay near-neutral so there is always somewhere quiet to land.
 
-Everything stays dark by default; the point is mood, not brightness. "Go light in the
-daytime" swaps the two high-sun stops for light palettes.
+**`accent` is a foreground colour more often than a fill** — link text, the active nav
+icon, the running countdown, focused borders. That means the light themes need a deep,
+saturated accent rather than a pastel one: a pale gold on white is unreadable. All five
+light accents are dark enough to pass as body text.
 
-**Light and dark palettes are never blended.** Interpolating one into the other passes
-through mid-grey, where the background and the text meet in the middle and contrast
-collapses to about 2.5:1 for the best part of an hour. `paletteFor` steps across that
-boundary instead, which puts the switch just above the horizon: light while the sun is
-up, dark once it has set. Every palette is checked to clear WCAG AA — across a full-day
-sweep the worst body text is 8.9:1 and the worst muted text 4.6:1.
+Every palette is checked against WCAG AA by `npm run check:contrast`: `text` ≥ 7:1,
+`textMuted` / `accent` / `danger` / `info` / `success` / `warning` ≥ 4.5:1, `textFaint`
+≥ 3:1, and `accentText` ≥ 4.5:1 on an `accent` fill. All ten pass. Run it after changing any
+colour rather than trusting the eye — several of the light accents needed darkening by a
+shade or two to clear the bar. Passing `--fix` nudges failing colours toward the nearest
+compliant shade of the same hue.
 
-The preview slider in Settings scrubs the day without waiting for it, and resets when you
-leave the page so you can never strand the app on a previewed hour.
+Category colours are stored as *token names* (`accent`, `info`, `success`, `warning`,
+`danger`, `muted`) rather than literal hex, so a task category keeps its meaning and its
+contrast in every theme.
+
+A settings file naming a theme that no longer exists falls back to Classic Dark, and the
+resolved id is written back so the picker's selection stays honest.
 
 ## Data
 

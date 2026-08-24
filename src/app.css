@@ -13,24 +13,25 @@
 		sans-serif;
 	--font-mono: 'Cascadia Mono', 'JetBrains Mono', Consolas, 'SF Mono', ui-monospace, monospace;
 
-	/* Fallbacks so the window is never unstyled during first paint. */
-	--bg: #0b0e14;
-	--bg-sunken: #080a10;
-	--bg-raised: #0f131a;
-	--bg-hover: #141922;
-	--bg-active: #1a202b;
-	--border: #151a23;
-	--border-strong: #232a36;
-	--text: #bfbdb6;
-	--text-muted: #7a8290;
-	--text-faint: #4d5566;
-	--accent: #e6b450;
-	--accent-text: #0b0e14;
-	--accent-soft: rgba(230, 180, 80, 0.14);
-	--success: #aad94c;
-	--warning: #ffb454;
-	--danger: #f07178;
-	--info: #59c2ff;
+	/* Fallbacks so the window is never unstyled during first paint.
+	   Keep these in step with the Classic Dark tokens in themes/themes.ts. */
+	--bg: #1f2430;
+	--bg-sunken: #1a1f29;
+	--bg-raised: #242b38;
+	--bg-hover: #2a3140;
+	--bg-active: #313a4b;
+	--border: #272d3a;
+	--border-strong: #3a4354;
+	--text: #cccac2;
+	--text-muted: #99a0ad;
+	--text-faint: #69737f;
+	--accent: #ffcc66;
+	--accent-text: #1f2430;
+	--accent-soft: rgba(255, 204, 102, 0.14);
+	--success: #d5ff80;
+	--warning: #ffd173;
+	--danger: #f28779;
+	--info: #73d0ff;
 }
 
 *,

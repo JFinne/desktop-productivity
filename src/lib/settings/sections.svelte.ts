@@ -1,7 +1,6 @@
-import CircadianPreview from '$lib/components/settings/CircadianPreview.svelte';
+import ThemePicker from '$lib/components/settings/ThemePicker.svelte';
 import { registerSettingsSection } from '$lib/registry.svelte';
 import { storeLocation } from '$lib/storage';
-import { themes } from '$lib/themes/themes';
 import { settings } from './settings.svelte';
 
 let dataPath = $state('Locating…');
@@ -13,13 +12,7 @@ registerSettingsSection({
 	description: 'How Fokus looks. Changes apply immediately.',
 	order: 10,
 	fields: [
-		{
-			kind: 'select',
-			path: 'appearance.themeId',
-			label: 'Theme',
-			help: 'Ignored while the daylight cycle is on.',
-			options: themes.map((t) => ({ value: t.id, label: t.name }))
-		},
+		{ kind: 'custom', component: ThemePicker },
 		{
 			kind: 'slider',
 			path: 'appearance.fontScale',
@@ -35,51 +28,6 @@ registerSettingsSection({
 			label: 'Sidebar labels',
 			help: 'Turn off for a narrow icon-only rail.'
 		}
-	]
-});
-
-registerSettingsSection({
-	id: 'circadian',
-	title: 'Daylight cycle',
-	description:
-		'Shifts the palette continuously with the sun where you are — warm and dim at night, ' +
-		'cool and open in the middle of the day. Computed on this machine from your coordinates; ' +
-		'nothing is looked up online.',
-	order: 15,
-	fields: [
-		{
-			kind: 'toggle',
-			path: 'appearance.adaptive',
-			label: 'Follow the daylight cycle',
-			help: 'Overrides the theme above.'
-		},
-		{
-			kind: 'number',
-			path: 'appearance.latitude',
-			label: 'Latitude',
-			min: -90,
-			max: 90,
-			step: 0.5,
-			suffix: '°N',
-			help: 'Negative for the southern hemisphere. Check the sunrise time below to confirm.'
-		},
-		{
-			kind: 'number',
-			path: 'appearance.longitude',
-			label: 'Longitude',
-			min: -180,
-			max: 180,
-			step: 0.5,
-			suffix: '°E',
-			help: 'Negative for west. Guessed from your time zone, so it is usually close already.'
-		},
-		{
-			kind: 'toggle',
-			path: 'appearance.daylight',
-			label: 'Go light in the daytime',
-			help: 'Off keeps Fokus dark around the clock and shifts only warmth and contrast.'
-		},
-		{ kind: 'custom', component: CircadianPreview }
 	]
 });
 

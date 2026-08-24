@@ -1,4 +1,3 @@
-import { longitudeFromTimezone } from '../themes/sun';
 import { DEFAULT_THEME_ID } from '../themes/themes';
 
 /**
@@ -11,14 +10,6 @@ import { DEFAULT_THEME_ID } from '../themes/themes';
 export interface AppSettings {
 	appearance: {
 		themeId: string;
-		/** When true the palette follows the daylight cycle and `themeId` is ignored. */
-		adaptive: boolean;
-		/** Degrees north; drives the circadian sun position. */
-		latitude: number;
-		/** Degrees east. */
-		longitude: number;
-		/** Let the circadian theme go light while the sun is high. */
-		daylight: boolean;
 		fontScale: number;
 		showSidebarLabels: boolean;
 	};
@@ -47,12 +38,6 @@ export interface AppSettings {
 export const DEFAULT_SETTINGS: AppSettings = {
 	appearance: {
 		themeId: DEFAULT_THEME_ID,
-		adaptive: false,
-		// A first guess only: longitude follows from the machine's UTC offset,
-		// latitude cannot be inferred offline, so it needs a nudge from the user.
-		latitude: 40,
-		longitude: longitudeFromTimezone(),
-		daylight: false,
 		fontScale: 1,
 		showSidebarLabels: true
 	},
