@@ -1,3 +1,4 @@
+mod notes;
 mod sounds;
 mod storage;
 
@@ -16,6 +17,15 @@ pub fn run() {
             sounds::import_custom_sound,
             sounds::delete_custom_sound,
             sounds::read_custom_sound,
+            notes::list_notes,
+            notes::read_note,
+            notes::write_note,
+            notes::create_note,
+            notes::rename_note,
+            notes::delete_note,
+            notes::search_notes,
+            notes::note_backlinks,
+            notes::notes_location,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

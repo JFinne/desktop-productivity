@@ -20,6 +20,11 @@ export interface Tool {
 	description?: string;
 	/** Optional live badge for the sidebar and title bar, e.g. a countdown. */
 	status?: () => string | null;
+	/**
+	 * 'full' hands the tool the entire content pane with no padding and no outer
+	 * scrolling — for tools that manage their own scroll regions, like an editor.
+	 */
+	layout?: 'default' | 'full';
 }
 
 /** A settings control, addressed by a dotted path into the settings object. */

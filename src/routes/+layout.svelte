@@ -42,7 +42,7 @@
 	<TitleBar title={context} />
 	<div class="body">
 		<Sidebar />
-		<main>
+		<main class:full={activeTool?.layout === 'full'}>
 			{@render children()}
 		</main>
 	</div>
@@ -70,5 +70,12 @@
 		/* The single soft corner is the only "frame" in the whole window. */
 		border-top-left-radius: var(--radius-lg);
 		padding: 2rem 2.25rem 3rem;
+	}
+
+	/* A tool that manages its own scrolling gets the bare pane. */
+	main.full {
+		display: flex;
+		padding: 0;
+		overflow: hidden;
 	}
 </style>

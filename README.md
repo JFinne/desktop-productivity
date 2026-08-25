@@ -123,6 +123,40 @@ drag-and-drop inside the webview — chips would select as text instead of lifti
 never accepts dropped files (sound import goes through a dialog), so turning it off costs
 nothing. Don't re-enable it without replacing the calendar's drag interaction.
 
+## Notes
+
+A Markdown notes tab with wiki links. Each note is a real `.md` file in
+`<app data>/notes/`, named after its title — the Obsidian model, so the folder stays
+useful outside Fokus and a `[[Wiki Link]]` is just a file name. Rust owns the folder
+(`src-tauri/src/notes.rs`), which keeps the frontend free of filesystem scope and lets
+search and backlinks grep on disk instead of holding every note in memory.
+
+### Live preview
+
+`tools/notes/livePreview.ts` is a CodeMirror extension that decorates the source in
+place rather than rendering to a separate pane: headings get sized, `**bold**` is drawn
+bold, and the syntax characters are hidden with replace decorations — *except* where the
+cursor is. Put the caret inside `*emphasis*` and only those asterisks reappear; the
+`**bold**` and `[[links]]` on the same line stay rendered. Decorations rebuild on
+selection changes as well as edits, because "is the cursor here" is an input.
+
+Two things that are easy to get wrong:
+
+- **Wiki links must be resolved before the Markdown tree is walked.** Markdown parses the
+  inner `[…]` of `[[a link]]` as an ordinary link and will hide one bracket of each pair
+  with its own rule, leaving `[a link]` on screen. `buildDecorations` collects the
+  `[[…]]` ranges first and skips any `Link`/`LinkMark`/`URL` node inside one.
+- **Fenced code fences are deliberately left visible.** Hiding them makes it impossible
+  to see where a code block ends.
+
+### Opening a note
+
+`open()` reads the file *before* assigning `activeTitle` and `contents`, so both land in
+one synchronous step. Setting the title first let the editor's sync effect run while
+`contents` still held the previous note — and the next keystroke saved that stale buffer
+under the new note's name. It raced in the browser and would have failed every time over
+real IPC.
+
 ## Themes
 
 Ten themes, five dark and five light, in `themes/themes.ts`. Each one is a flat token
