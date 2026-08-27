@@ -5,8 +5,14 @@
 
 	let {
 		value,
-		onselect
-	}: { value: ISODate | null; onselect: (date: ISODate | null) => void } = $props();
+		onselect,
+		allowNone = true
+	}: {
+		value: ISODate | null;
+		onselect: (date: ISODate | null) => void;
+		/** Events are always pinned to a day, so they hide the Someday option. */
+		allowNone?: boolean;
+	} = $props();
 
 	let open = $state(false);
 	let root = $state<HTMLElement | null>(null);
@@ -15,12 +21,14 @@
 	const today = $derived(todayISO());
 	const label = $derived(value === null ? 'Someday' : formatDayLabel(value, today));
 
-	const presets = $derived([
-		{ label: 'Today', date: today },
-		{ label: 'Tomorrow', date: addDays(today, 1) },
-		{ label: 'Next week', date: addDays(today, 7) },
-		{ label: 'Someday', date: null }
-	]);
+	const presets = $derived(
+		[
+			{ label: 'Today', date: today as ISODate | null },
+			{ label: 'Tomorrow', date: addDays(today, 1) as ISODate | null },
+			{ label: 'Next week', date: addDays(today, 7) as ISODate | null },
+			...(allowNone ? [{ label: 'Someday', date: null }] : [])
+		]
+	);
 
 	function choose(date: ISODate | null) {
 		onselect(date);

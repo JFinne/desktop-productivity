@@ -29,6 +29,9 @@ export interface AppSettings {
 		showCompleted: boolean;
 		carryOverUnfinished: boolean;
 	};
+	events: {
+		showOnCalendar: boolean;
+	};
 	calendar: {
 		weekStartsOn: 'sunday' | 'monday';
 		defaultView: 'month' | 'week';
@@ -56,6 +59,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
 	tasks: {
 		showCompleted: true,
 		carryOverUnfinished: true
+	},
+	events: {
+		showOnCalendar: true
 	},
 	calendar: {
 		weekStartsOn: 'monday',

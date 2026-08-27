@@ -131,3 +131,20 @@ export function weekLabel(iso: ISODate, weekStartsOn: WeekStart): string {
 		? monthLabel(first)
 		: `${monthLabel(first)} – ${monthLabel(last)}`;
 }
+
+const TIME = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+
+/** Renders a stored 24-hour `HH:MM` in the user's locale, e.g. "9:30 AM". */
+export function formatTime(hhmm: string): string {
+	const [hours, minutes] = hhmm.split(':').map(Number);
+	if (Number.isNaN(hours) || Number.isNaN(minutes)) return hhmm;
+	return TIME.format(new Date(2000, 0, 1, hours, minutes));
+}
+
+/** `HH:MM` sorts lexicographically, so all-day (null) is the only special case. */
+export function compareTimes(a: string | null, b: string | null): number {
+	if (a === b) return 0;
+	if (a === null) return -1;
+	if (b === null) return 1;
+	return a < b ? -1 : 1;
+}

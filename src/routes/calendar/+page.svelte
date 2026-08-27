@@ -15,9 +15,11 @@
 		type ISODate
 	} from '$lib/date';
 	import { settings } from '$lib/settings/settings.svelte';
+	import EventRow from '$lib/tools/events/EventRow.svelte';
+	import { eventStore, type FokusEvent } from '$lib/tools/events/store.svelte';
 	import DayCell from '$lib/tools/calendar/DayCell.svelte';
 	import TaskChip from '$lib/tools/calendar/TaskChip.svelte';
-	import { drag } from '$lib/tools/calendar/dnd.svelte';
+	import { drag, parseDragPayload } from '$lib/tools/calendar/dnd.svelte';
 	import TaskRow from '$lib/tools/tasks/TaskRow.svelte';
 	import { taskStore, type Task } from '$lib/tools/tasks/store.svelte';
 
@@ -29,6 +31,8 @@
 	let selected = $state<ISODate>(todayISO());
 	let view = $state<View | null>(null);
 	let draftTitle = $state('');
+	let draftEventTitle = $state('');
+	let draftEventTime = $state('');
 	let backlogDropTarget = $state(false);
 
 	// Starts from the saved default, then follows whatever the user picks here.
@@ -50,6 +54,22 @@
 		for (const day of map.values()) day.sort((a, b) => a.order - b.order);
 		return map;
 	});
+
+	const showEvents = $derived(settings.value.events.showOnCalendar);
+
+	/** Events keyed by day, same shape as `byDate` so cells stay a lookup. */
+	const eventsByDate = $derived.by(() => {
+		const map = new Map<ISODate, FokusEvent[]>();
+		if (!showEvents) return map;
+		for (const event of eventStore.events) {
+			const day = map.get(event.date) ?? [];
+			day.push(event);
+			map.set(event.date, day);
+		}
+		return map;
+	});
+
+	const selectedEvents = $derived(showEvents ? eventStore.forDate(selected) : []);
 
 	const unscheduled = $derived(
 		listed.filter((t) => t.scheduledFor === null).sort((a, b) => a.order - b.order)
@@ -80,11 +100,22 @@
 		if (taskStore.add(draftTitle, { scheduledFor: selected })) draftTitle = '';
 	}
 
-	function dropOnBacklog(event: DragEvent) {
-		event.preventDefault();
+	function addEventToSelected() {
+		const created = eventStore.add({
+			title: draftEventTitle,
+			date: selected,
+			// Blank time means all-day, matching the Events tab.
+			start: draftEventTime || null
+		});
+		if (created) draftEventTitle = '';
+	}
+
+	function dropOnBacklog(dropEvent: DragEvent) {
+		dropEvent.preventDefault();
 		backlogDropTarget = false;
-		const id = event.dataTransfer?.getData('text/plain');
-		if (id) taskStore.schedule(id, null);
+		// Only tasks can be unscheduled; an event without a day is a task.
+		const item = parseDragPayload(dropEvent.dataTransfer?.getData('text/plain'));
+		if (item?.kind === 'task') taskStore.schedule(item.id, null);
 		drag.end();
 	}
 </script>
@@ -117,7 +148,7 @@
 <div
 	class="backlog"
 	class:dropTarget={backlogDropTarget}
-	class:armed={drag.active}
+	class:armed={drag.item?.kind === 'task'}
 	role="group"
 	aria-label="Someday backlog"
 	ondragover={(e) => {
@@ -152,6 +183,7 @@
 			<DayCell
 				{date}
 				tasks={byDate.get(date) ?? []}
+				events={eventsByDate.get(date) ?? []}
 				muted={activeView === 'month' && !isSameMonth(date, anchor)}
 				today={date === today}
 				selected={date === selected}
@@ -165,25 +197,72 @@
 <section class="detail">
 	<h3>{fullDayLabel(selected)}</h3>
 
-	<form
-		class="composer"
-		onsubmit={(e) => {
-			e.preventDefault();
-			addToSelected();
-		}}
-	>
-		<Icon name="plus" size={14} />
-		<input bind:value={draftTitle} placeholder="Add a task to this day…" aria-label="New task" />
-		<button type="submit" disabled={!draftTitle.trim()}>Add</button>
-	</form>
+	<div class="columns">
+		<div class="col">
+			<h4>To-do</h4>
 
-	{#if selectedTasks.length}
-		{#each selectedTasks as task (task.id)}
-			<TaskRow {task} />
-		{/each}
-	{:else}
-		<p class="empty">Nothing scheduled.</p>
-	{/if}
+			<form
+				class="composer"
+				onsubmit={(e) => {
+					e.preventDefault();
+					addToSelected();
+				}}
+			>
+				<Icon name="plus" size={14} />
+				<input
+					bind:value={draftTitle}
+					placeholder="Add a task to this day…"
+					aria-label="New task"
+				/>
+				<button type="submit" disabled={!draftTitle.trim()}>Add</button>
+			</form>
+
+			{#each selectedTasks as task (task.id)}
+				<TaskRow {task} />
+			{/each}
+
+			{#if !selectedTasks.length}
+				<p class="empty">Nothing to do.</p>
+			{/if}
+		</div>
+
+		{#if showEvents}
+			<div class="col">
+				<h4>Events</h4>
+
+				<form
+					class="composer"
+					onsubmit={(e) => {
+						e.preventDefault();
+						addEventToSelected();
+					}}
+				>
+					<Icon name="plus" size={14} />
+					<input
+						bind:value={draftEventTitle}
+						placeholder="Add an event…"
+						aria-label="New event"
+					/>
+					<input
+						class="time"
+						type="time"
+						bind:value={draftEventTime}
+						aria-label="Start time (blank for all day)"
+						title="Leave blank for an all-day event"
+					/>
+					<button type="submit" disabled={!draftEventTitle.trim()}>Add</button>
+				</form>
+
+				{#each selectedEvents as event (event.id)}
+					<EventRow {event} compact />
+				{/each}
+
+				{#if !selectedEvents.length}
+					<p class="empty">Nothing on.</p>
+				{/if}
+			</div>
+		{/if}
+	</div>
 </section>
 
 <style>
@@ -339,7 +418,41 @@
 
 	.detail {
 		margin-top: 1.8rem;
-		max-width: 46rem;
+	}
+
+	.columns {
+		display: flex;
+		align-items: flex-start;
+		gap: 1.8rem;
+		/* Wraps to stacked columns before either side gets too narrow to use. */
+		flex-wrap: wrap;
+	}
+
+	.col {
+		flex: 1 1 24rem;
+		min-width: 0;
+	}
+
+	.col h4 {
+		margin-bottom: 0.4rem;
+		padding-left: 0.35rem;
+		font-size: 0.66rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--text-faint);
+	}
+
+	.composer .time {
+		flex: none;
+		width: 6.6rem;
+		height: 26px;
+		padding: 0 0.3rem;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius);
+		background: var(--bg);
+		color: var(--text-muted);
+		font-size: 0.74rem;
 	}
 
 	.detail h3 {

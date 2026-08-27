@@ -5,6 +5,16 @@ in a deliberately quiet, bezel-less window. Nothing it stores ever leaves the ma
 
 Built with **Tauri 2 + SvelteKit 2 (Svelte 5, TypeScript)**.
 
+## Versioning
+
+A new tool or feature increments the middle number; tweaks and cosmetic changes
+increment the last. Three files carry the version and drift apart easily, because npm,
+Cargo and `tauri icon` each only touch their own — keep them together:
+
+- `package.json`
+- `src-tauri/tauri.conf.json` — the one that names the installers
+- `src-tauri/Cargo.toml` (then build once, so `Cargo.lock` follows)
+
 ## Running it
 
 ```
@@ -104,6 +114,32 @@ Completed tasks keep their original date, so history stays honest.
 Dates are local `YYYY-MM-DD` strings everywhere (`lib/date.ts`) — never `toISOString()`,
 which converts to UTC and lands on the wrong day in the evening west of Greenwich. The
 string form also sorts correctly with `<`, which is why comparisons are lexicographic.
+
+## Events
+
+Events are things that happen at a time, not things you finish. They live in their own
+store (`events.json`) rather than as a flag on `Task`, for two reasons:
+
+- there is no `done` state, so a shared type would carry a field that is meaningless for
+  half its values;
+- **an event can never be carried forward.** Carry-over walks `taskStore.tasks` only, so
+  an event is structurally incapable of being swept to the next day, however the to-do
+  carry-over setting is configured. That guarantee comes from the separation, not from a
+  condition someone could later forget to write.
+
+An event has a date, an optional start and end time (`HH:MM`, null for all-day), an
+optional location and a colour. All-day events sort above timed ones — `compareTimes`
+treats null as earliest.
+
+On the calendar an event renders as a coloured bar with its time rather than a dotted
+chip, so "happening at 2pm" and "to do today" are distinguishable without a legend.
+Events sort above tasks in a day cell, and the day panel below the grid splits into two
+columns — to-do on the left, events on the right — each with its own composer. Event
+rows there use `EventRow`'s `compact` form, which drops the time inputs and the date
+picker: the date is implied by the selected day, and the full time range moves to the
+tooltip so a narrow column still fits. Dragging works for both: the drag payload is
+`kind:id` and `parseDragPayload` routes the drop, which is also how the Someday strip
+knows to refuse an event — an event without a day is just a task.
 
 ## Calendar
 

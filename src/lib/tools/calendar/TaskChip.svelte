@@ -7,9 +7,9 @@
 	const category = $derived(taskStore.category(task.categoryId));
 
 	function onDragStart(event: DragEvent) {
-		event.dataTransfer?.setData('text/plain', task.id);
+		event.dataTransfer?.setData('text/plain', `task:${task.id}`);
 		if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
-		drag.start(task.id);
+		drag.start('task', task.id);
 	}
 </script>
 
@@ -21,7 +21,7 @@
 <div
 	class="chip"
 	class:done={task.done}
-	class:lifted={drag.taskId === task.id}
+	class:lifted={drag.isDragging('task', task.id)}
 	draggable="true"
 	role="listitem"
 	title={task.title}

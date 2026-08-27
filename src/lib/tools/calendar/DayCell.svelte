@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { dayOfMonth, fullDayLabel, type ISODate } from '$lib/date';
+	import { eventStore, type FokusEvent } from '$lib/tools/events/store.svelte';
 	import { taskStore, type Task } from '$lib/tools/tasks/store.svelte';
-	import { drag } from './dnd.svelte';
+	import { drag, parseDragPayload } from './dnd.svelte';
+	import EventChip from './EventChip.svelte';
 	import TaskChip from './TaskChip.svelte';
 
 	let {
 		date,
 		tasks,
+		events = [],
 		muted = false,
 		today = false,
 		selected = false,
@@ -15,6 +18,7 @@
 	}: {
 		date: ISODate;
 		tasks: Task[];
+		events?: FokusEvent[];
 		muted?: boolean;
 		today?: boolean;
 		selected?: boolean;
@@ -24,14 +28,19 @@
 
 	let dropTarget = $state(false);
 
-	const shown = $derived(tasks.slice(0, maxChips));
-	const overflow = $derived(tasks.length - shown.length);
+	// Events come first — they are anchored to a clock, tasks merely to the day.
+	const shownEvents = $derived(events.slice(0, maxChips));
+	const shownTasks = $derived(tasks.slice(0, Math.max(0, maxChips - shownEvents.length)));
+	const overflow = $derived(
+		events.length - shownEvents.length + (tasks.length - shownTasks.length)
+	);
 
-	function onDrop(event: DragEvent) {
-		event.preventDefault();
+	function onDrop(dropEvent: DragEvent) {
+		dropEvent.preventDefault();
 		dropTarget = false;
-		const id = event.dataTransfer?.getData('text/plain');
-		if (id) taskStore.schedule(id, date);
+		const item = parseDragPayload(dropEvent.dataTransfer?.getData('text/plain'));
+		if (item?.kind === 'task') taskStore.schedule(item.id, date);
+		else if (item?.kind === 'event') eventStore.update(item.id, { date });
 		drag.end();
 	}
 </script>
@@ -64,7 +73,10 @@
 	<span class="number">{dayOfMonth(date)}</span>
 
 	<div class="chips" role="list">
-		{#each shown as task (task.id)}
+		{#each shownEvents as event (event.id)}
+			<EventChip {event} />
+		{/each}
+		{#each shownTasks as task (task.id)}
 			<TaskChip {task} />
 		{/each}
 		{#if overflow > 0}

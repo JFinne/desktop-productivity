@@ -4,5 +4,6 @@
  */
 import './focus/tool';
 import './tasks/tool';
+import './events/tool';
 import './notes/tool.svelte';
 import './calendar/tool';
